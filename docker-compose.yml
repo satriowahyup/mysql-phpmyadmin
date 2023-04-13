@@ -26,7 +26,7 @@ services:
     restart: always
     environment:
       PMA_HOST: mysql
-      PMA_ABSOLUTE_URI: http://localhost:${PHPMYADMIN_SERVER_PORT}/
+      PMA_ABSOLUTE_URI: http://localhost:${PHPMYADMIN_SERVER_PORT}${PHPMYADMIN_ABSOLUTE_URI}
     volumes:
       - phpmyadmin_data:/var/www/html/
     networks:
