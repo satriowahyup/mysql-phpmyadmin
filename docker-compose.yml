@@ -2,21 +2,16 @@ version: "3.8"
 
 services:
 
-  mysql:
-    image: mysql:5.7.34
+  mariadb:
+    image: mariadb:10.6
     container_name: mysql
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-    ports: 
-      - 127.0.0.1:${MYSQL_EXPOSED_PORT}:3306
+    ports:
+        - 127.0.0.1:${MYSQL_EXPOSED_PORT}:3306
     volumes:
-      - mysql_data:/var/lib/mysql
-      - ./mysql/my.cnf:/etc/mysql/conf.d/my.cnf
-    healthcheck:
-      test: mysqladmin ping -h 127.0.0.1 -u root --password=$$MYSQL_ROOT_PASSWORD
-      interval: 5s
-      retries: 10
+     - mysql_data:/var/lib/mysql
     networks:
       - global_network
 
@@ -25,14 +20,14 @@ services:
     container_name: phpmyadmin
     restart: always
     environment:
-      PMA_HOST: mysql
-      PMA_ABSOLUTE_URI: http://localhost:${PHPMYADMIN_SERVER_PORT}${PHPMYADMIN_ABSOLUTE_URI}
+      PMA_HOST: mariadb
+      PMA_ABSOLUTE_URI: http://localhost:${PHPMYADMIN_SERVER_PORT}/
     volumes:
       - phpmyadmin_data:/var/www/html/
     networks:
       - global_network
     depends_on:
-      - mysql
+      - mariadb
 
   nginx:
     image: nginx:1.17.4-alpine
