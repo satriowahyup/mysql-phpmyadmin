@@ -1,27 +1,27 @@
 version: "3.8"
 
 services:
-
   mariadb:
     image: mariadb:10.6
-    container_name: mysql
+    container_name: mysql-dev
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
     ports:
-        - 127.0.0.1:${MYSQL_EXPOSED_PORT}:3306
+      - ${MYSQL_BIND_ADDRESS:-0.0.0.0}:${MYSQL_EXPOSED_PORT}:3306
     volumes:
-     - mysql_data:/var/lib/mysql
+      - mysql_data:/var/lib/mysql
+      - ./my.cnf:/etc/mysql/conf.d/my.cnf
     networks:
       - global_network
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin:fpm-alpine
-    container_name: phpmyadmin
+    container_name: phpmyadmin-dev
     restart: always
     environment:
       PMA_HOST: mariadb
-      PMA_ABSOLUTE_URI: http://localhost:${PHPMYADMIN_SERVER_PORT}${PHPMYADMIN_ABSOLUTE_URI}
+      UPLOAD_LIMIT: 2G
     volumes:
       - phpmyadmin_data:/var/www/html/
     networks:
@@ -31,13 +31,13 @@ services:
 
   nginx:
     image: nginx:1.17.4-alpine
-    container_name: phpmyadmin_server
+    container_name: phpmyadmin_server-dev
     restart: always
     volumes:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
       - phpmyadmin_data:/var/www/html/:ro
     ports:
-      - 127.0.0.1:${PHPMYADMIN_SERVER_PORT}:80
+      - ${PHPMYADMIN_BIND_ADDRESS:-0.0.0.0}:${PHPMYADMIN_SERVER_PORT}:80
     networks:
       - global_network
     depends_on:

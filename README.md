@@ -1,91 +1,186 @@
-# mysql-phpmyadmin
+# MySQL (MariaDB) & phpMyAdmin with Docker Compose
 
+Setup cepat lingkungan database **MariaDB (MySQL 10.6)** dan **phpMyAdmin** (berbasis FPM + Nginx) menggunakan Docker Compose. Siap digunakan untuk kebutuhan pengembangan lokal (*local development*) maupun akses jaringan lokal (LAN).
 
+---
 
-## Getting started
+## 📋 Daftar Isi
+- [Fitur Utama](#-fitur-utama)
+- [Prasyarat](#-prasyarat)
+- [Panduan Memulai (Step-by-Step)](#-panduan-memulai-step-by-step)
+  - [1. Clone Repository](#1-clone-repository)
+  - [2. Konfigurasi Environment (.env)](#2-konfigurasi-environment-env)
+  - [3. Jalankan Container](#3-jalankan-container)
+- [Cara Mengakses](#-cara-mengakses)
+  - [Web Interface phpMyAdmin](#web-interface-phpmyadmin)
+  - [Koneksi Database Langsung (DBeaver / Navicat / Backend App)](#koneksi-database-langsung-dbeaver--navicat--backend-app)
+- [Akses dari Jaringan Lokal / LAN (Opsional)](#-akses-dari-jaringan-lokal--lan-opsional)
+- [Perintah Berguna (Docker Commands)](#-perintah-berguna-docker-commands)
+- [Struktur Folder](#-struktur-folder)
+- [Troubleshooting / Masalah Umum](#-troubleshooting--masalah-umum)
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+---
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+## ✨ Fitur Utama
+- **MariaDB 10.6** stabil dengan volume persisten data.
+- **phpMyAdmin (FPM + Nginx)** ringan dan cepat.
+- **Konfigurasi Fleksibel** via `.env` (custom port & bind address).
+- **Mendukung Import Database Besar**:
+  - `UPLOAD_LIMIT: 2G` pada phpMyAdmin.
+  - `max_allowed_packet=1G` dan `innodb_log_file_size=1G` pada [my.cnf](my.cnf).
 
-## Add your files
+---
 
-- [ ] [Create](https://gitlab.com/-/experiment/new_project_readme_content:b130dcaeda76f69b655950e9f557246f?https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://gitlab.com/-/experiment/new_project_readme_content:b130dcaeda76f69b655950e9f557246f?https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://gitlab.com/-/experiment/new_project_readme_content:b130dcaeda76f69b655950e9f557246f?https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
+## 🛠 Prasyarat
+Sebelum memulai, pastikan perangkat Anda telah terpasang:
+- [Git](https://git-scm.com/)
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Windows / macOS) atau [Docker Engine](https://docs.docker.com/engine/install/) & Docker Compose (Linux).
 
+Pastikan Docker service dalam kondisi berjalan (`docker info`).
+
+---
+
+## 🚀 Panduan Memulai (Step-by-Step)
+
+### 1. Clone Repository
+Buka terminal dan clone repository ini ke komputer Anda:
+
+```bash
+git clone <URL_REPOSITORY_ANDA>
+cd mysql-phpmyadmin
 ```
-cd existing_repo
-git remote add origin https://gitlab.com/syssol-docker/mysql-phpmyadmin.git
-git branch -M main
-git push -uf origin main
+
+### 2. Konfigurasi Environment (`.env`)
+Salin file template `.env.sample` menjadi `.env`:
+
+**Windows (PowerShell):**
+```powershell
+Copy-Item .env.sample .env
 ```
 
-## Integrate with your tools
+**Linux / macOS / Git Bash:**
+```bash
+cp .env.sample .env
+```
 
-- [ ] [Set up project integrations](https://gitlab.com/-/experiment/new_project_readme_content:b130dcaeda76f69b655950e9f557246f?https://docs.gitlab.com/ee/user/project/integrations/)
+Buka file `.env` dan sesuaikan nilainya:
 
-## Collaborate with your team
+```env
+# Port MySQL di komputer host (misal: 3306 atau 3307 jika 3306 sudah dipakai)
+MYSQL_EXPOSED_PORT=3306
 
-- [ ] [Invite team members and collaborators](https://gitlab.com/-/experiment/new_project_readme_content:b130dcaeda76f69b655950e9f557246f?https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://gitlab.com/-/experiment/new_project_readme_content:b130dcaeda76f69b655950e9f557246f?https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://gitlab.com/-/experiment/new_project_readme_content:b130dcaeda76f69b655950e9f557246f?https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Automatically merge when pipeline succeeds](https://gitlab.com/-/experiment/new_project_readme_content:b130dcaeda76f69b655950e9f557246f?https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+# Password untuk user root database (Wajib diisi!)
+MYSQL_ROOT_PASSWORD=rahasia123
 
-## Test and Deploy
+# Bind address MySQL (127.0.0.1 untuk hanya PC sendiri, 0.0.0.0 untuk semua IP / LAN)
+MYSQL_BIND_ADDRESS=127.0.0.1
 
-Use the built-in continuous integration in GitLab.
+# Port web phpMyAdmin di komputer host
+PHPMYADMIN_SERVER_PORT=1111
 
-- [ ] [Get started with GitLab CI/CD](https://gitlab.com/-/experiment/new_project_readme_content:b130dcaeda76f69b655950e9f557246f?https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing(SAST)](https://gitlab.com/-/experiment/new_project_readme_content:b130dcaeda76f69b655950e9f557246f?https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://gitlab.com/-/experiment/new_project_readme_content:b130dcaeda76f69b655950e9f557246f?https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://gitlab.com/-/experiment/new_project_readme_content:b130dcaeda76f69b655950e9f557246f?https://docs.gitlab.com/ee/user/clusters/agent/)
+# Bind address phpMyAdmin (127.0.0.1 atau 0.0.0.0)
+PHPMYADMIN_BIND_ADDRESS=127.0.0.1
+```
 
-***
+> [!WARNING]
+> Jangan pernah membagikan atau meng-commit file `.env` asli ke GitHub jika mengandung kredensial sensitif. File `.env` sudah dimasukkan ke `.gitignore`.
 
-# Editing this README
+### 3. Jalankan Container
+Jalankan perintah berikut di folder project:
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!).  Thank you to [makeareadme.com](https://gitlab.com/-/experiment/new_project_readme_content:b130dcaeda76f69b655950e9f557246f?https://www.makeareadme.com/) for this template.
+```bash
+docker compose up -d
+```
 
-## Suggestions for a good README
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+Periksa apakah semua container berjalan normal:
 
-## Name
-Choose a self-explaining name for your project.
+```bash
+docker compose ps
+```
+Semua container (`mysql-dev`, `phpmyadmin-dev`, dan `phpmyadmin_server-dev`) harus berstatus `running` / `Up`.
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+---
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+## 🌐 Cara Mengakses
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+### Web Interface phpMyAdmin
+Buka browser favorit Anda dan akses:
+```text
+http://localhost:1111
+```
+*(Sesuaikan port jika Anda mengubah `PHPMYADMIN_SERVER_PORT` di `.env`)*
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+**Login phpMyAdmin:**
+- **Server**: biarkan default / `mariadb`
+- **Username**: `root`
+- **Password**: *(sesuai dengan `MYSQL_ROOT_PASSWORD` di `.env`)*
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+---
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+### Koneksi Database Langsung (DBeaver / Navicat / Backend App)
+Jika ingin menghubungkan aplikasi Anda (Node.js, Laravel, Python, dll.) atau database client GUI dari komputer host:
+- **Host**: `127.0.0.1` atau `localhost`
+- **Port**: `3306` *(sesuai `MYSQL_EXPOSED_PORT` di `.env`)*
+- **User**: `root`
+- **Password**: *(sesuai `MYSQL_ROOT_PASSWORD`)*
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+---
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+## 📶 Akses dari Jaringan Lokal / LAN (Opsional)
+Jika Anda ingin mengakses phpMyAdmin atau MySQL dari HP / laptop lain dalam satu jaringan WiFi / LAN:
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+1. Ubah nilai di file `.env` menjadi:
+   ```env
+   MYSQL_BIND_ADDRESS=0.0.0.0
+   PHPMYADMIN_BIND_ADDRESS=0.0.0.0
+   ```
+2. Restart container:
+   ```bash
+   docker compose down
+   docker compose up -d
+   ```
+3. Cari IP address PC host Anda (misal `192.168.1.50`).
+4. Akses dari perangkat lain melalui:
+   ```text
+   http://192.168.1.50:1111/
+   ```
+5. *Catatan:* Jika tidak bisa dibuka, pastikan Windows Firewall / firewall OS Anda mengizinkan koneksi port masuk (*inbound rules*) untuk port yang digunakan.
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+---
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+## ⚙️ Perintah Berguna (Docker Commands)
 
-## License
-For open source projects, say how it is licensed.
+| Perintah | Deskripsi |
+|---|---|
+| `docker compose up -d` | Menjalankan semua service di latar belakang (*detached mode*). |
+| `docker compose down` | Menghentikan dan menghapus container (data database tetap aman di volume). |
+| `docker compose restart` | Merestart semua service container. |
+| `docker compose logs -f` | Melihat log output secara real-time untuk debugging. |
+| `docker compose ps` | Melihat status container yang sedang berjalan. |
+| `docker compose down -v` | ⚠️ **Hati-hati:** Menghapus container beserta volume data (database akan terhapus bersih). |
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+---
 
+## 📁 Struktur Folder
+```text
+mysql-phpmyadmin/
+├── nginx/
+│   └── default.conf       # Konfigurasi reverse proxy Nginx untuk phpMyAdmin FPM
+├── .env.sample            # Template variabel environment
+├── .gitignore             # Mengabaikan file .env dan cache
+├── docker-compose.yml     # Definisi service MariaDB, phpMyAdmin, dan Nginx
+├── my.cnf                 # Konfigurasi kustom MariaDB (packet size, buffer)
+└── README.md              # Dokumentasi project
+```
+
+---
+
+## ❓ Troubleshooting / Masalah Umum
+
+### 1. Port sudah digunakan (*Port already in use*)
+- **Penyebab**: Port `3306` atau `1111` sudah dipakai oleh aplikasi lain (misalnya XAMPP atau MySQL native di Windows).
+- **Solusi**: Ubah nilai `MYSQL_EXPOSED_PORT` atau `PHPMYADMIN_SERVER_PORT` di `.env` ke port lain (misal: `3307` dan `1112`), lalu jalankan `docker compose up -d`.
+
+### 2. Gagal Login di phpMyAdmin (`Access denied for user 'root'`)
+- Pastikan password yang diketik sama persis dengan `MYSQL_ROOT_PASSWORD` di `.env`.
+- Jika Anda baru saja mengganti password di `.env` setelah container pertama kali dibuat, MariaDB tidak akan otomatis mengubah password root volume lama. Solusinya, reset volume dengan `docker compose down -v` lalu jalankan kembali (perhatian: data lama akan hilang).
